@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guessball.mapper.MatchMapper">
+
+    <resultMap id="matchMap" type="com.guessball.entity.Match">
+        <id     column="id"               property="id"/>
+        <result column="external_id"      property="externalId"/>
+        <result column="competition"      property="competition"/>
+        <result column="home_team_code"   property="homeTeamCode"/>
+        <result column="away_team_code"   property="awayTeamCode"/>
+        <result column="home_team_name"   property="homeTeamName"/>
+        <result column="away_team_name"   property="awayTeamName"/>
+        <result column="home_team_crest"  property="homeTeamCrest"/>
+        <result column="away_team_crest"  property="awayTeamCrest"/>
+        <result column="match_time"       property="matchTime"/>
+        <result column="predict_deadline" property="predictDeadline"/>
+        <result column="stage"            property="stage"/>
+        <result column="group_name"       property="groupName"/>
+        <result column="matchday"         property="matchday"/>
+        <result column="home_score"       property="homeScore"/>
+        <result column="away_score"       property="awayScore"/>
+        <result column="home_score_et"    property="homeScoreEt"/>
+        <result column="away_score_et"    property="awayScoreEt"/>
+        <result column="home_score_pk"    property="homeScorePk"/>
+        <result column="away_score_pk"    property="awayScorePk"/>
+        <result column="winner"           property="winner"/>
+        <result column="status"           property="status"/>
+        <result column="last_synced_at"   property="lastSyncedAt"/>
+        <result column="created_at"       property="createdAt"/>
+        <result column="updated_at"       property="updatedAt"/>
+    </resultMap>
+
+    <select id="findById" resultMap="matchMap">
+        SELECT * FROM matches WHERE id = #{id}
+    </select>
+
+    <select id="findByExternalIdAndCompetition" resultMap="matchMap">
+        SELECT * FROM matches WHERE external_id = #{externalId} AND competition = #{competition}
+    </select>
+
+    <select id="findByCompetition" resultMap="matchMap">
+        SELECT * FROM matches WHERE competition = #{competition} ORDER BY match_time ASC
+    </select>
+
+    <select id="findTodayMatches" resultMap="matchMap">
+        SELECT * FROM matches
+        WHERE DATE(match_time AT TIME ZONE 'Asia/Shanghai') = CURRENT_DATE AT TIME ZONE 'Asia/Shanghai'
+        ORDER BY match_time ASC
+        LIMIT 5
+    </select>
+
+    <select id="findActiveMatches" resultMap="matchMap">
+        SELECT * FROM matches
+        WHERE status NOT IN ('FINISHED', 'CANCELLED', 'POSTPONED')
+          AND match_time &lt; NOW()
+        ORDER BY match_time ASC
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO matches (
+            external_id, competition, home_team_code, away_team_code,
+            home_team_name, away_team_name, home_team_crest, away_team_crest,
+            match_time, predict_deadline, stage, group_name, matchday,
+            home_score, away_score, home_score_et, away_score_et,
+            home_score_pk, away_score_pk, winner, status, last_synced_at, updated_at
+        ) VALUES (
+            #{externalId}, #{competition}, #{homeTeamCode}, #{awayTeamCode},
+            #{homeTeamName}, #{awayTeamName}, #{homeTeamCrest}, #{awayTeamCrest},
+            #{matchTime}, #{predictDeadline}, #{stage}, #{groupName}, #{matchday},
+            #{homeScore}, #{awayScore}, #{homeScoreEt}, #{awayScoreEt},
+            #{homeScorePk}, #{awayScorePk}, #{winner}, #{status}, NOW(), NOW()
+        )
+        ON CONFLICT (external_id, competition) DO UPDATE SET
+            home_team_code   = EXCLUDED.home_team_code,
+            away_team_code   = EXCLUDED.away_team_code,
+            home_team_name   = EXCLUDED.home_team_name,
+            away_team_name   = EXCLUDED.away_team_name,
+            home_team_crest  = EXCLUDED.home_team_crest,
+            away_team_crest  = EXCLUDED.away_team_crest,
+            match_time       = EXCLUDED.match_time,
+            predict_deadline = EXCLUDED.predict_deadline,
+            stage            = EXCLUDED.stage,
+            group_name       = EXCLUDED.group_name,
+            matchday         = EXCLUDED.matchday,
+            home_score       = EXCLUDED.home_score,
+            away_score       = EXCLUDED.away_score,
+            home_score_et    = EXCLUDED.home_score_et,
+            away_score_et    = EXCLUDED.away_score_et,
+            home_score_pk    = EXCLUDED.home_score_pk,
+            away_score_pk    = EXCLUDED.away_score_pk,
+            winner           = EXCLUDED.winner,
+            status           = EXCLUDED.status,
+            last_synced_at   = NOW(),
+            updated_at       = NOW()
+    </insert>
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guessball.mapper.GroupStandingMapper">
+
+    <resultMap id="standingMap" type="com.guessball.entity.GroupStanding">
+        <id     column="id"           property="id"/>
+        <result column="competition"  property="competition"/>
+        <result column="team_code"    property="teamCode"/>
+        <result column="team_name"    property="teamName"/>
+        <result column="team_crest"   property="teamCrest"/>
+        <result column="group_name"   property="groupName"/>
+        <result column="position"     property="position"/>
+        <result column="played"       property="played"/>
+        <result column="won"          property="won"/>
+        <result column="drawn"        property="drawn"/>
+        <result column="lost"         property="lost"/>
+        <result column="goals_for"    property="goalsFor"/>
+        <result column="goals_against" property="goalsAgainst"/>
+        <result column="points"       property="points"/>
+        <result column="updated_at"   property="updatedAt"/>
+    </resultMap>
+
+    <select id="findByCompetition" resultMap="standingMap">
+        SELECT * FROM group_standings
+        WHERE competition = #{competition}
+        ORDER BY group_name ASC, position ASC
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO group_standings (
+            competition, team_code, team_name, team_crest, group_name,
+            position, played, won, drawn, lost, goals_for, goals_against, points, updated_at
+        ) VALUES (
+            #{competition}, #{teamCode}, #{teamName}, #{teamCrest}, #{groupName},
+            #{position}, #{played}, #{won}, #{drawn}, #{lost}, #{goalsFor}, #{goalsAgainst}, #{points}, NOW()
+        )
+        ON CONFLICT (competition, team_code, group_name) DO UPDATE SET
+            team_name    = EXCLUDED.team_name,
+            team_crest   = EXCLUDED.team_crest,
+            position     = EXCLUDED.position,
+            played       = EXCLUDED.played,
+            won          = EXCLUDED.won,
+            drawn        = EXCLUDED.drawn,
+            lost         = EXCLUDED.lost,
+            goals_for    = EXCLUDED.goals_for,
+            goals_against = EXCLUDED.goals_against,
+            points       = EXCLUDED.points,
+            updated_at   = NOW()
+    </insert>
+
+</mapper>

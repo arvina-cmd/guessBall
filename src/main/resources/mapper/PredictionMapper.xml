@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guessball.mapper.PredictionMapper">
+
+    <resultMap id="predictionMap" type="com.guessball.entity.Prediction">
+        <id     column="id"             property="id"/>
+        <result column="user_id"        property="userId"/>
+        <result column="match_id"       property="matchId"/>
+        <result column="predicted_home" property="predictedHome"/>
+        <result column="predicted_away" property="predictedAway"/>
+        <result column="points_earned"  property="pointsEarned"/>
+        <result column="is_settled"     property="settled"/>
+        <result column="created_at"     property="createdAt"/>
+    </resultMap>
+
+    <select id="findByUserIdAndMatchId" resultMap="predictionMap">
+        SELECT * FROM predictions WHERE user_id = #{userId} AND match_id = #{matchId}
+    </select>
+
+    <select id="findByUserId" resultMap="predictionMap">
+        SELECT * FROM predictions WHERE user_id = #{userId} ORDER BY created_at DESC
+    </select>
+
+    <select id="findUnsettledByMatchId" resultMap="predictionMap">
+        SELECT * FROM predictions WHERE match_id = #{matchId} AND is_settled = FALSE
+    </select>
+
+    <select id="countSettledByMatchId" resultType="int">
+        SELECT COUNT(*) FROM predictions WHERE match_id = #{matchId} AND is_settled = TRUE
+    </select>
+
+    <select id="existsByUserIdAndMatchId" resultType="boolean">
+        SELECT EXISTS(SELECT 1 FROM predictions WHERE user_id = #{userId} AND match_id = #{matchId})
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO predictions (user_id, match_id, predicted_home, predicted_away)
+        VALUES (#{userId}, #{matchId}, #{predictedHome}, #{predictedAway})
+    </insert>
+
+    <update id="settle">
+        UPDATE predictions
+        SET points_earned = #{pointsEarned}, is_settled = TRUE
+        WHERE id = #{id}
+    </update>
+
+</mapper>

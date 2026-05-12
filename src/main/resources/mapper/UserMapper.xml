@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guessball.mapper.UserMapper">
+
+    <resultMap id="userMap" type="com.guessball.entity.User">
+        <id     column="id"           property="id"/>
+        <result column="username"     property="username"/>
+        <result column="email"        property="email"/>
+        <result column="password_hash" property="passwordHash"/>
+        <result column="total_points" property="totalPoints"/>
+        <result column="exact_hits"   property="exactHits"/>
+        <result column="result_hits"  property="resultHits"/>
+        <result column="created_at"   property="createdAt"/>
+    </resultMap>
+
+    <select id="findByUsername" resultMap="userMap">
+        SELECT * FROM users WHERE username = #{username}
+    </select>
+
+    <select id="findByEmail" resultMap="userMap">
+        SELECT * FROM users WHERE email = #{email}
+    </select>
+
+    <select id="findById" resultMap="userMap">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+    <select id="findAllOrderByPoints" resultMap="userMap">
+        SELECT * FROM users ORDER BY total_points DESC, exact_hits DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (username, email, password_hash)
+        VALUES (#{username}, #{email}, #{passwordHash})
+    </insert>
+
+    <update id="addPoints">
+        UPDATE users
+        SET total_points = total_points + #{points},
+            exact_hits   = exact_hits + #{exactHits},
+            result_hits  = result_hits + #{resultHits}
+        WHERE id = #{userId}
+    </update>
+
+</mapper>
